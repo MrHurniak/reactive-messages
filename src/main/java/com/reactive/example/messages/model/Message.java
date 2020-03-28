@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 import java.util.UUID;
 
-@Document
+@Document(collection = "messages")
 @Data
 @Accessors(chain = true)
 @AllArgsConstructor
