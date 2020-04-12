@@ -12,7 +12,7 @@ public class MessageDto {
 
     private String message;
 
-    private UUID authorId;
+    private UUID userId;
 
     private Instant updateDate;
 

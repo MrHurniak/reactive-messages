@@ -9,10 +9,13 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface MessageMapper {
 
-    @Mapping(target = "messageText", source = "message")
-    Message to(MessageCreateDto source);
+    @Mapping(target = "updateDate", ignore = true)
+    @Mapping(target = "messageText", source = "source.message")
+    Message to(MessageCreateDto source, Message.MessageId id);
 
 
-    @Mapping(target = "message", source = "messageText")
+    @Mapping(target = "userId", source = "id.userId")
+    @Mapping(target = "id", source = "id.messageId")
+    @Mapping(target = "message", source = "source.messageText")
     MessageDto from(Message source);
 }

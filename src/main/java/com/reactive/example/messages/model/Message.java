@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -18,12 +19,18 @@ import java.util.UUID;
 public class Message {
 
     @Id
-    private UUID id;
+    private MessageId id;
 
     private String messageText;
 
     private Instant updateDate;
 
-    private UUID authorId;
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class MessageId implements Serializable {
+        private UUID userId;
+        private UUID messageId;
+    }
 
 }
