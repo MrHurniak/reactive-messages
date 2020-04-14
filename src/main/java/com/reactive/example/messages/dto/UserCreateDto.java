@@ -3,13 +3,10 @@ package com.reactive.example.messages.dto;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import javax.validation.constraints.NotBlank;
-
 @Data
 @Accessors(chain = true)
-public class MessageCreateDto {
+public class UserCreateDto {
 
-    @NotBlank
-    private String message;
-
+    private String login;
+    private String password;
 }
