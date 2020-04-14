@@ -21,6 +21,8 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 @RequiredArgsConstructor
 public class MessageHandler {
 
+    private static final String MESSAGES_PATH_PREFIX = "/application/api/users/{user-id}/messages";
+
     private final MessageService messageService;
 
     //TODO change for 'created'
@@ -63,7 +65,7 @@ public class MessageHandler {
     @Bean
     public RouterFunction<ServerResponse> messageRoutes(MessageHandler handler) {
         return RouterFunctions.route()
-                .path("/application/api/users/{user-id}/messages", builder -> builder
+                .path(MESSAGES_PATH_PREFIX, builder -> builder
                         .POST("", accept(MediaType.APPLICATION_JSON), handler::saveMessage)
                         .GET("{message-id}", handler::getMessageById)
                         .PUT("{message-id}", accept(MediaType.APPLICATION_JSON), handler::updateMessage)
