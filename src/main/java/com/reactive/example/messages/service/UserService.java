@@ -20,14 +20,24 @@ public class UserService {
     public Mono<UserDto> createUser(UserCreateDto userCreateDto) {
         return userRepository.existsById(userCreateDto.getLogin())
                 .flatMap(isLoginExist -> isLoginExist
-                                ? Mono.error(new RuntimeException("NOT_UNIQUE"))
-                                : userRepository.save(userMapper.to(userCreateDto)))
+                        ? Mono.error(new RuntimeException("NOT_UNIQUE"))
+                        : userRepository.save(userMapper.to(userCreateDto)))
                 .map(userMapper::from);
     }
 
     public Mono<UserDto> getUserByLogin(String login) {
         return userRepository.findById(login)
                 .map(userMapper::from);
+    }
+
+    public Mono<Void> checkIfExistByLogin(String login) {
+        return userRepository.existsById(login)
+                .flatMap(isUserExist -> {
+                    if (!isUserExist) {
+                        return Mono.error(new RuntimeException("USER_NOT_FOUND"));
+                    }
+                    return Mono.empty();
+                });
     }
 
 }

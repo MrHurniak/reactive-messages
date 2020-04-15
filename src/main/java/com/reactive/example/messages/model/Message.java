@@ -29,7 +29,7 @@ public class Message {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class MessageId implements Serializable {
-        private UUID userId;
+        private String userId;
         private UUID messageId;
     }
 

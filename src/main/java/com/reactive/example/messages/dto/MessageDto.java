@@ -14,7 +14,7 @@ public class MessageDto {
 
     private String message;
 
-    private UUID userId;
+    private String userId;
 
     private Instant updateDate;
 
