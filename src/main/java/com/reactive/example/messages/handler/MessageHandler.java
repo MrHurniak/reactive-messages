@@ -28,7 +28,6 @@ public class MessageHandler {
     private final MessageService messageService;
     private final UserService userService;
 
-    //TODO change for 'created'
     public Mono<ServerResponse> saveMessage(ServerRequest request) {
         String userLogin = request.pathVariable("user-login");
         Mono<MessageDto> savedMessage = userService.checkIfExistByLogin(userLogin)
