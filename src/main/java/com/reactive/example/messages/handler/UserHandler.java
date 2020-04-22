@@ -3,6 +3,7 @@ package com.reactive.example.messages.handler;
 import com.reactive.example.messages.dto.UserCreateDto;
 import com.reactive.example.messages.dto.UserDto;
 import com.reactive.example.messages.service.UserService;
+import com.reactive.example.messages.validator.impl.SpringValidationHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
@@ -21,10 +22,11 @@ public class UserHandler {
 
     private static final String USERS_PATH_PREFIX = "/application/api/users";
 
+    private final SpringValidationHandler validationHandler;
     private final UserService userService;
 
     public Mono<ServerResponse> createUser(ServerRequest request) {
-        Mono<UserDto> createdUser = request.bodyToMono(UserCreateDto.class)
+        Mono<UserDto> createdUser = validationHandler.handleRequest(UserCreateDto.class, request)
                 .flatMap(userService::createUser);
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)

@@ -4,6 +4,7 @@ import com.reactive.example.messages.dto.MessageCreateDto;
 import com.reactive.example.messages.dto.MessageDto;
 import com.reactive.example.messages.service.MessageService;
 import com.reactive.example.messages.service.UserService;
+import com.reactive.example.messages.validator.impl.SpringValidationHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
@@ -27,12 +28,13 @@ public class MessageHandler {
 
     private final MessageService messageService;
     private final UserService userService;
+    private final SpringValidationHandler validationHandler;
 
     public Mono<ServerResponse> saveMessage(ServerRequest request) {
         String userLogin = request.pathVariable("user-login");
         Mono<MessageDto> savedMessage = userService.checkIfExistByLogin(userLogin)
                 .then(
-                        request.bodyToMono(MessageCreateDto.class)
+                        validationHandler.handleRequest(MessageCreateDto.class, request)
                                 .flatMap(message -> messageService.saveMessage(userLogin, message))
                 );
         return ServerResponse.ok()
@@ -63,7 +65,7 @@ public class MessageHandler {
         String userLogin = request.pathVariable("user-login");
         UUID messageId = UUID.fromString(request.pathVariable("message-id"));
         Mono<MessageDto> updatedMessage = userService.checkIfExistByLogin(userLogin)
-                .then(request.bodyToMono(MessageCreateDto.class)
+                .then(validationHandler.handleRequest(MessageCreateDto.class, request)
                         .flatMap(message -> messageService.updateMessage(userLogin, messageId, message))
                 );
         return ServerResponse.ok()
