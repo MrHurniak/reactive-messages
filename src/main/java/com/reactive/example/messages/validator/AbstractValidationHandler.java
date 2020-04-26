@@ -1,5 +1,6 @@
 package com.reactive.example.messages.validator;
 
+import com.reactive.example.messages.exception.BadRequestException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
@@ -28,5 +29,18 @@ public abstract class AbstractValidationHandler {
                 });
     }
 
-    protected abstract Exception onValidationError(Errors errors, final ServerRequest request);
+    public final <T> T handleRequest(T target) {
+        if (target == null) {
+            throw new BadRequestException("Empty request body!");
+        }
+        Errors errors = new BeanPropertyBindingResult(target, target.getClass().getName());
+        this.validator.validate(target, errors);
+
+        if (CollectionUtils.isEmpty(errors.getAllErrors())){
+            return target;
+        }
+        throw onValidationError(errors, null);
+    }
+
+    protected abstract RuntimeException onValidationError(Errors errors, final ServerRequest request);
 }

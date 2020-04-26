@@ -2,6 +2,7 @@ package com.reactive.example.messages.service;
 
 import com.reactive.example.messages.dto.MessageCreateDto;
 import com.reactive.example.messages.dto.MessageDto;
+import com.reactive.example.messages.exception.NotFoundException;
 import com.reactive.example.messages.mapper.MessageMapper;
 import com.reactive.example.messages.model.Message;
 import com.reactive.example.messages.repository.MessageRepository;
@@ -28,13 +29,13 @@ public class MessageService {
 
     public Mono<MessageDto> getById(String userId, UUID messageId) {
         return messageRepository.findById(new Message.MessageId(userId, messageId))
-                .switchIfEmpty(Mono.error(new RuntimeException("MESSAGE_NOT_FOUND")))
+                .switchIfEmpty(Mono.error(new NotFoundException("MESSAGE_NOT_FOUND")))
                 .map(messageMapper::from);
     }
 
     public Flux<MessageDto> getAllUserMessages(String userLogin) {
         return mongoTemplate.find(Query.query(Criteria.where("_id.userId").is(userLogin)), Message.class)
-                .switchIfEmpty(Mono.error(new RuntimeException("MESSAGE_NOT_FOUND")))
+                .switchIfEmpty(Mono.error(new NotFoundException("MESSAGE_NOT_FOUND")))
                 .map(messageMapper::from);
     }
 
@@ -49,7 +50,7 @@ public class MessageService {
     public Mono<MessageDto> updateMessage(String userId, UUID messageId, MessageCreateDto messageToUpdate) {
         Message.MessageId id = new Message.MessageId(userId, messageId);
         return messageRepository.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("MESSAGE_NOT_FOUND")))
+                .switchIfEmpty(Mono.error(new NotFoundException("MESSAGE_NOT_FOUND")))
                 .map(message -> message.setMessageText(messageToUpdate.getMessage())
                         .setUpdateDate(Instant.now())
                 )

@@ -26,7 +26,8 @@ public class UserHandler {
     private final UserService userService;
 
     public Mono<ServerResponse> createUser(ServerRequest request) {
-        Mono<UserDto> createdUser = validationHandler.handleRequest(UserCreateDto.class, request)
+        Mono<UserDto> createdUser = request.bodyToMono(UserCreateDto.class)
+                .doOnNext(validationHandler::handleRequest)
                 .flatMap(userService::createUser);
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)

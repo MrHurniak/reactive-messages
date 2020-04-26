@@ -32,11 +32,10 @@ public class MessageHandler {
 
     public Mono<ServerResponse> saveMessage(ServerRequest request) {
         String userLogin = request.pathVariable("user-login");
-        Mono<MessageDto> savedMessage = userService.checkIfExistByLogin(userLogin)
-                .then(
-                        validationHandler.handleRequest(MessageCreateDto.class, request)
-                                .flatMap(message -> messageService.saveMessage(userLogin, message))
-                );
+        Mono<MessageDto> savedMessage = request.bodyToMono(MessageCreateDto.class)
+                .doOnNext(validationHandler::handleRequest)
+                .flatMap(message -> userService.checkIfExistByLogin(userLogin)
+                        .then(messageService.saveMessage(userLogin, message)));
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(savedMessage, MessageDto.class);
@@ -64,10 +63,10 @@ public class MessageHandler {
     public Mono<ServerResponse> updateMessage(ServerRequest request) {
         String userLogin = request.pathVariable("user-login");
         UUID messageId = UUID.fromString(request.pathVariable("message-id"));
-        Mono<MessageDto> updatedMessage = userService.checkIfExistByLogin(userLogin)
-                .then(validationHandler.handleRequest(MessageCreateDto.class, request)
-                        .flatMap(message -> messageService.updateMessage(userLogin, messageId, message))
-                );
+        Mono<MessageDto> updatedMessage = request.bodyToMono(MessageCreateDto.class)
+                .doOnNext(validationHandler::handleRequest)
+                .flatMap(message -> userService.checkIfExistByLogin(userLogin)
+                        .then(messageService.updateMessage(userLogin, messageId, message)));
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(updatedMessage, MessageDto.class);
@@ -88,8 +87,8 @@ public class MessageHandler {
         return RouterFunctions.route()
                 .path(MESSAGES_PATH_PREFIX, builder -> builder
                         .POST("", accept(MediaType.APPLICATION_JSON), handler::saveMessage)
-                        .GET("{message-id}", handler::getMessageById)
                         .GET("", handler::getAllUserMessages)
+                        .GET("{message-id}", handler::getMessageById)
                         .PUT("{message-id}", accept(MediaType.APPLICATION_JSON), handler::updateMessage)
                         .DELETE("{message-id}", handler::deleteMessage)
                 )

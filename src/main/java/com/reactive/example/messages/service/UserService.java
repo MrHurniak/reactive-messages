@@ -2,6 +2,8 @@ package com.reactive.example.messages.service;
 
 import com.reactive.example.messages.dto.UserCreateDto;
 import com.reactive.example.messages.dto.UserDto;
+import com.reactive.example.messages.exception.BadRequestException;
+import com.reactive.example.messages.exception.NotFoundException;
 import com.reactive.example.messages.mapper.UserMapper;
 import com.reactive.example.messages.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,7 @@ public class UserService {
     public Mono<UserDto> createUser(UserCreateDto userCreateDto) {
         return userRepository.existsById(userCreateDto.getLogin())
                 .flatMap(isLoginExist -> isLoginExist
-                        ? Mono.error(new RuntimeException("NOT_UNIQUE"))
+                        ? Mono.error(new BadRequestException("LOGIN_NOT_UNIQUE"))
                         : userRepository.save(userMapper.to(userCreateDto)))
                 .map(userMapper::from);
     }
@@ -34,7 +36,7 @@ public class UserService {
         return userRepository.existsById(login)
                 .flatMap(isUserExist -> {
                     if (!isUserExist) {
-                        return Mono.error(new RuntimeException("USER_NOT_FOUND"));
+                        return Mono.error(new NotFoundException("USER_NOT_FOUND"));
                     }
                     return Mono.empty();
                 });
