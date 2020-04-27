@@ -2,6 +2,7 @@ package com.reactive.example.messages.handler;
 
 import com.reactive.example.messages.dto.MessageCreateDto;
 import com.reactive.example.messages.dto.MessageDto;
+import com.reactive.example.messages.provider.UuidProvider;
 import com.reactive.example.messages.service.MessageService;
 import com.reactive.example.messages.service.UserService;
 import com.reactive.example.messages.validator.impl.SpringValidationHandler;
@@ -29,6 +30,7 @@ public class MessageHandler {
     private final MessageService messageService;
     private final UserService userService;
     private final SpringValidationHandler validationHandler;
+    private final UuidProvider uuidProvider;
 
     public Mono<ServerResponse> saveMessage(ServerRequest request) {
         String userLogin = request.pathVariable("user-login");
@@ -43,7 +45,7 @@ public class MessageHandler {
 
     public Mono<ServerResponse> getMessageById(ServerRequest request) {
         String userLogin = request.pathVariable("user-login");
-        UUID messageId = UUID.fromString(request.pathVariable("message-id"));
+        UUID messageId = uuidProvider.parse(request.pathVariable("message-id"));
         Mono<MessageDto> message = userService.checkIfExistByLogin(userLogin)
                 .then(messageService.getById(userLogin, messageId));
         return ServerResponse.ok()
@@ -62,7 +64,7 @@ public class MessageHandler {
 
     public Mono<ServerResponse> updateMessage(ServerRequest request) {
         String userLogin = request.pathVariable("user-login");
-        UUID messageId = UUID.fromString(request.pathVariable("message-id"));
+        UUID messageId = uuidProvider.parse(request.pathVariable("message-id"));
         Mono<MessageDto> updatedMessage = request.bodyToMono(MessageCreateDto.class)
                 .doOnNext(validationHandler::handleRequest)
                 .flatMap(message -> userService.checkIfExistByLogin(userLogin)
@@ -74,7 +76,7 @@ public class MessageHandler {
 
     public Mono<ServerResponse> deleteMessage(ServerRequest request) {
         String userLogin = request.pathVariable("user-login");
-        UUID messageId = UUID.fromString(request.pathVariable("message-id"));
+        UUID messageId = uuidProvider.parse(request.pathVariable("message-id"));
         Mono<Void> deleteMessage = userService.checkIfExistByLogin(userLogin)
                 .then(messageService.deleteMessage(userLogin, messageId));
         return ServerResponse.noContent()
