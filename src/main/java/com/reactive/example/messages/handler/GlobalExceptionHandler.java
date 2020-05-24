@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 @Component
@@ -25,6 +26,7 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
     private static final String MESSAGE_KEY = "message";
     private static final String STATUS_KEY = "status";
     private static final int DEFAULT_ERROR_STATUS = HttpStatus.INTERNAL_SERVER_ERROR.value();
+    public static final String DEFAULT_ERROR_MESSAGE = "Error occurred";
 
     private final Map<Class<? extends Throwable>, Function<Throwable, Mono<ServerResponse>>> exceptionClassToHandler = new HashMap<>();
 
@@ -69,6 +71,11 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
     }
 
     private Mono<ServerResponse> buildErrorResponse(int status, String message) {
-        return ServerResponse.status(status).body(BodyInserters.fromValue(Map.of(MESSAGE_KEY, message)));
+        return ServerResponse.status(status)
+                .body(
+                        BodyInserters.fromValue(
+                                Map.of(MESSAGE_KEY, Objects.requireNonNullElse(message, DEFAULT_ERROR_MESSAGE))
+                        )
+                );
     }
 }

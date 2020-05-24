@@ -1,7 +1,9 @@
 package com.reactive.example.messages.handler;
 
 import com.reactive.example.messages.component.validator.impl.SpringValidationHandler;
+import com.reactive.example.messages.dto.TokenDto;
 import com.reactive.example.messages.dto.UserCreateDto;
+import com.reactive.example.messages.dto.UserCredentialsDto;
 import com.reactive.example.messages.dto.UserDto;
 import com.reactive.example.messages.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +27,22 @@ public class UserHandler {
     private final SpringValidationHandler validationHandler;
     private final UserService userService;
 
-    public Mono<ServerResponse> createUser(ServerRequest request) {
+    public Mono<ServerResponse> signUpUser(ServerRequest request) {
         Mono<UserDto> createdUser = request.bodyToMono(UserCreateDto.class)
                 .doOnNext(validationHandler::handleRequest)
                 .flatMap(userService::createUser);
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(createdUser, UserDto.class);
+    }
+
+    public Mono<ServerResponse> signInUser(ServerRequest request) {
+        Mono<TokenDto> authenticationResponse = request.bodyToMono(UserCredentialsDto.class)
+                .doOnNext(validationHandler::handleRequest)
+                .flatMap(userService::signInUser);
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(authenticationResponse, TokenDto.class);
     }
 
     public Mono<ServerResponse> getUser(ServerRequest request) {
@@ -46,9 +57,8 @@ public class UserHandler {
     public RouterFunction<ServerResponse> userRoutes(UserHandler handler) {
         return RouterFunctions.route()
                 .path(USERS_PATH_PREFIX, builder -> builder
-                        .POST("register", accept(MediaType.APPLICATION_JSON), handler::createUser)
-                        //TODO create login endpoint
-                        .POST("login", accept(MediaType.APPLICATION_JSON), request -> ServerResponse.ok().build())
+                        .POST("register", accept(MediaType.APPLICATION_JSON), handler::signUpUser)
+                        .POST("login", accept(MediaType.APPLICATION_JSON), handler::signInUser)
                         .GET("{login}", handler::getUser)
                 )
                 .build();

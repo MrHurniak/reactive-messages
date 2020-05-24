@@ -2,8 +2,11 @@ package com.reactive.example.messages.service;
 
 import com.reactive.example.messages.component.security.encryption.EncryptionComponent;
 import com.reactive.example.messages.component.security.hashing.HashingComponent;
+import com.reactive.example.messages.dto.TokenDto;
 import com.reactive.example.messages.dto.UserCreateDto;
+import com.reactive.example.messages.dto.UserCredentialsDto;
 import com.reactive.example.messages.dto.UserDto;
+import com.reactive.example.messages.exception.AuthorizationException;
 import com.reactive.example.messages.exception.BadRequestException;
 import com.reactive.example.messages.exception.NotFoundException;
 import com.reactive.example.messages.mapper.UserMapper;
@@ -30,6 +33,13 @@ public class UserService {
                         ? Mono.error(new BadRequestException("LOGIN_NOT_UNIQUE"))
                         : userRepository.save(processEntityBeforeSave(userCreateDto)))
                 .map(userMapper::from);
+    }
+
+    public Mono<TokenDto> signInUser(UserCredentialsDto userSignInDto) {
+        return userRepository.findById(userSignInDto.getLogin())
+                .filter(databaseUser -> hashingComponent.isEquals(userSignInDto.getPassword(), databaseUser.getPassword()))
+                .map(user -> new TokenDto().setToken("Bearer security_token"))
+                .switchIfEmpty(Mono.error(AuthorizationException::new));
     }
 
     public Mono<UserDto> getUserByLogin(String login) {
