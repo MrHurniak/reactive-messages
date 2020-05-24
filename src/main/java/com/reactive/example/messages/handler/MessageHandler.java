@@ -1,11 +1,11 @@
 package com.reactive.example.messages.handler;
 
+import com.reactive.example.messages.component.provider.UuidProvider;
+import com.reactive.example.messages.component.validator.impl.SpringValidationHandler;
 import com.reactive.example.messages.dto.MessageCreateDto;
 import com.reactive.example.messages.dto.MessageDto;
-import com.reactive.example.messages.provider.UuidProvider;
 import com.reactive.example.messages.service.MessageService;
 import com.reactive.example.messages.service.UserService;
-import com.reactive.example.messages.validator.impl.SpringValidationHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;

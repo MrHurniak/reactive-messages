@@ -1,9 +1,9 @@
 package com.reactive.example.messages.handler;
 
+import com.reactive.example.messages.component.validator.impl.SpringValidationHandler;
 import com.reactive.example.messages.dto.UserCreateDto;
 import com.reactive.example.messages.dto.UserDto;
 import com.reactive.example.messages.service.UserService;
-import com.reactive.example.messages.validator.impl.SpringValidationHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
@@ -46,7 +46,9 @@ public class UserHandler {
     public RouterFunction<ServerResponse> userRoutes(UserHandler handler) {
         return RouterFunctions.route()
                 .path(USERS_PATH_PREFIX, builder -> builder
-                        .POST("", accept(MediaType.APPLICATION_JSON), handler::createUser)
+                        .POST("register", accept(MediaType.APPLICATION_JSON), handler::createUser)
+                        //TODO create login endpoint
+                        .POST("login", accept(MediaType.APPLICATION_JSON), request -> ServerResponse.ok().build())
                         .GET("{login}", handler::getUser)
                 )
                 .build();

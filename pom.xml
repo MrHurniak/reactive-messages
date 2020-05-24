@@ -20,6 +20,13 @@
         <mapstruct.version>1.3.1.Final</mapstruct.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-lang3.version>3.10</commons-lang3.version>
+        <commons-validator.version>1.6</commons-validator.version>
+
+        <!--Resolve dependency conflicts -->
+        <commons-collections.version>3.2.2</commons-collections.version>
+        <commons-logging.version>1.2</commons-logging.version>
+        <tink.version>1.4.0-rc1</tink.version>
+        <spring-security-core.version>5.3.2.RELEASE</spring-security-core.version>
     </properties>
 
     <dependencies>
@@ -32,6 +39,7 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
+        <!-- Tools and commons libraries-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -60,6 +68,13 @@
             <version>${commons-lang3.version}</version>
         </dependency>
         <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>${commons-validator.version}</version>
+        </dependency>
+
+        <!--Testing-->
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -80,7 +95,47 @@
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!--Security-->
+        <dependency>
+            <groupId>com.google.crypto.tink</groupId>
+            <artifactId>tink</artifactId>
+            <version>${tink.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <version>2.2.7.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <version>5.3.2.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.security</groupId>-->
+<!--            <artifactId>spring-security-core</artifactId>-->
+<!--            <version>${spring-security-core.version}</version>-->
+<!--        </dependency>-->
+
     </dependencies>
+
+    <dependencyManagement>
+        <!--Resolve dependency conflicts -->
+        <dependencies>
+            <dependency>
+                <groupId>commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>${commons-collections.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>${commons-logging.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>

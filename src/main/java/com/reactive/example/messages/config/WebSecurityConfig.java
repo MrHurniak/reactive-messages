@@ -1,0 +1,51 @@
+package com.reactive.example.messages.config;
+
+import com.reactive.example.messages.component.security.auth.BearerTokenReactiveAuthenticationManager;
+import com.reactive.example.messages.component.security.auth.ServerHttpBearerAuthenticationConverter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
+
+@EnableWebFluxSecurity
+public class WebSecurityConfig {
+
+    @Bean
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity httpSecurity) {
+        httpSecurity
+                .httpBasic().disable()
+                .formLogin().disable()
+                .csrf().disable()
+                .logout().disable()
+                .cors().disable();
+
+        httpSecurity
+                .authorizeExchange()
+                .pathMatchers(
+                        "/application/api/users/login", "/application/api/users/register"
+                ).permitAll()
+                .anyExchange().authenticated()
+                .and()
+                .addFilterAt(bearerAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
+
+        return httpSecurity.build();
+    }
+
+    //TODO what is going here?
+    private AuthenticationWebFilter bearerAuthenticationFilter() {
+        AuthenticationWebFilter bearerAuthenticationFilter;
+        ReactiveAuthenticationManager authManager;
+
+        authManager = new BearerTokenReactiveAuthenticationManager();
+        bearerAuthenticationFilter = new AuthenticationWebFilter(authManager);
+
+        bearerAuthenticationFilter.setServerAuthenticationConverter(new ServerHttpBearerAuthenticationConverter());
+        bearerAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/**"));
+
+        return bearerAuthenticationFilter;
+    }
+}

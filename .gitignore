@@ -29,3 +29,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### security ###
+aead_keyset.json

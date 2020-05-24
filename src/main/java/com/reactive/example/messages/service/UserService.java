@@ -1,10 +1,13 @@
 package com.reactive.example.messages.service;
 
+import com.reactive.example.messages.component.security.encryption.EncryptionComponent;
+import com.reactive.example.messages.component.security.hashing.HashingComponent;
 import com.reactive.example.messages.dto.UserCreateDto;
 import com.reactive.example.messages.dto.UserDto;
 import com.reactive.example.messages.exception.BadRequestException;
 import com.reactive.example.messages.exception.NotFoundException;
 import com.reactive.example.messages.mapper.UserMapper;
+import com.reactive.example.messages.model.User;
 import com.reactive.example.messages.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,12 +21,14 @@ public class UserService {
 
     private final UserMapper userMapper;
     private final UserRepository userRepository;
+    private final HashingComponent hashingComponent;
+    private final EncryptionComponent encryptionComponent;
 
     public Mono<UserDto> createUser(UserCreateDto userCreateDto) {
         return userRepository.existsById(userCreateDto.getLogin())
                 .flatMap(isLoginExist -> isLoginExist
                         ? Mono.error(new BadRequestException("LOGIN_NOT_UNIQUE"))
-                        : userRepository.save(userMapper.to(userCreateDto)))
+                        : userRepository.save(processEntityBeforeSave(userCreateDto)))
                 .map(userMapper::from);
     }
 
@@ -42,4 +47,9 @@ public class UserService {
                 });
     }
 
+    private User processEntityBeforeSave(UserCreateDto userCreateDto) {
+        return userMapper.to(userCreateDto)
+                .setEmail(encryptionComponent.encrypt(userCreateDto.getEmail()))
+                .setPassword(hashingComponent.hash(userCreateDto.getPassword()));
+    }
 }

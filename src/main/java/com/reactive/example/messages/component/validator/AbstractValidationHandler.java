@@ -1,4 +1,4 @@
-package com.reactive.example.messages.validator;
+package com.reactive.example.messages.component.validator;
 
 import com.reactive.example.messages.exception.BadRequestException;
 import org.apache.commons.collections4.CollectionUtils;

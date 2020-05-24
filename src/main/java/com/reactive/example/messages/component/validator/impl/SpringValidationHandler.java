@@ -1,8 +1,8 @@
-package com.reactive.example.messages.validator.impl;
+package com.reactive.example.messages.component.validator.impl;
 
+import com.reactive.example.messages.component.validator.AbstractValidationHandler;
 import com.reactive.example.messages.exception.BadRequestException;
 import com.reactive.example.messages.exception.FieldValidationException;
-import com.reactive.example.messages.validator.AbstractValidationHandler;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
