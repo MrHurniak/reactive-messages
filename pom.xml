@@ -27,6 +27,8 @@
         <commons-logging.version>1.2</commons-logging.version>
         <tink.version>1.4.0-rc1</tink.version>
         <spring-security-core.version>5.3.2.RELEASE</spring-security-core.version>
+        <spring-boot-starter-security.version>2.2.7.RELEASE</spring-boot-starter-security.version>
+        <spring-security-test.version>5.3.2.RELEASE</spring-security-test.version>
     </properties>
 
     <dependencies>
@@ -105,19 +107,33 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-            <version>2.2.7.RELEASE</version>
+            <version>${spring-boot-starter-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
-            <version>5.3.2.RELEASE</version>
+            <version>${spring-security-test.version}</version>
             <scope>test</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.security</groupId>-->
-<!--            <artifactId>spring-security-core</artifactId>-->
-<!--            <version>${spring-security-core.version}</version>-->
-<!--        </dependency>-->
+
+        <!-- JWT -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.11.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.11.1</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.11.1</version>
+            <scope>runtime</scope>
+        </dependency>
 
     </dependencies>
 

@@ -2,8 +2,8 @@ package com.reactive.example.messages.config;
 
 import com.reactive.example.messages.component.security.auth.BearerTokenReactiveAuthenticationManager;
 import com.reactive.example.messages.component.security.auth.ServerHttpBearerAuthenticationConverter;
+import com.reactive.example.messages.component.security.token.JwtSecurityComponent;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -15,7 +15,10 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 public class WebSecurityConfig {
 
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity httpSecurity) {
+    public SecurityWebFilterChain securityWebFilterChain(
+            ServerHttpSecurity httpSecurity,
+            JwtSecurityComponent jwtSecurityComponent
+    ) {
         httpSecurity
                 .httpBasic().disable()
                 .formLogin().disable()
@@ -26,26 +29,27 @@ public class WebSecurityConfig {
         httpSecurity
                 .authorizeExchange()
                 .pathMatchers(
-                        "/application/api/users/login", "/application/api/users/register"
+                        "/application/api/users/login",
+                        "/application/api/users/register"
                 ).permitAll()
                 .anyExchange().authenticated()
                 .and()
-                .addFilterAt(bearerAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
+                .addFilterAt(bearerAuthenticationFilter(jwtSecurityComponent), SecurityWebFiltersOrder.AUTHENTICATION);
 
         return httpSecurity.build();
     }
 
     //TODO what is going here?
-    private AuthenticationWebFilter bearerAuthenticationFilter() {
-        AuthenticationWebFilter bearerAuthenticationFilter;
-        ReactiveAuthenticationManager authManager;
+    private AuthenticationWebFilter bearerAuthenticationFilter(JwtSecurityComponent jwtSecurityComponent) {
+        var authManager = new BearerTokenReactiveAuthenticationManager();
+        var bearerAuthFilter = new AuthenticationWebFilter(authManager);
+        var authConverter = new ServerHttpBearerAuthenticationConverter(jwtSecurityComponent);
 
-        authManager = new BearerTokenReactiveAuthenticationManager();
-        bearerAuthenticationFilter = new AuthenticationWebFilter(authManager);
+        bearerAuthFilter.setServerAuthenticationConverter(authConverter);
+        bearerAuthFilter.setRequiresAuthenticationMatcher(
+                ServerWebExchangeMatchers.pathMatchers("/**")
+        );
 
-        bearerAuthenticationFilter.setServerAuthenticationConverter(new ServerHttpBearerAuthenticationConverter());
-        bearerAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/**"));
-
-        return bearerAuthenticationFilter;
+        return bearerAuthFilter;
     }
 }

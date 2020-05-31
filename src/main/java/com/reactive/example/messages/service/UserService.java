@@ -1,7 +1,9 @@
 package com.reactive.example.messages.service;
 
 import com.reactive.example.messages.component.security.encryption.EncryptionComponent;
+import com.reactive.example.messages.component.security.entity.AdaptedUserDetails;
 import com.reactive.example.messages.component.security.hashing.HashingComponent;
+import com.reactive.example.messages.component.security.token.JwtSecurityComponent;
 import com.reactive.example.messages.dto.TokenDto;
 import com.reactive.example.messages.dto.UserCreateDto;
 import com.reactive.example.messages.dto.UserCredentialsDto;
@@ -26,6 +28,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final HashingComponent hashingComponent;
     private final EncryptionComponent encryptionComponent;
+    private final JwtSecurityComponent jwtSecurityComponent;
 
     public Mono<UserDto> createUser(UserCreateDto userCreateDto) {
         return userRepository.existsById(userCreateDto.getLogin())
@@ -38,7 +41,8 @@ public class UserService {
     public Mono<TokenDto> signInUser(UserCredentialsDto userSignInDto) {
         return userRepository.findById(userSignInDto.getLogin())
                 .filter(databaseUser -> hashingComponent.isEquals(userSignInDto.getPassword(), databaseUser.getPassword()))
-                .map(user -> new TokenDto().setToken("Bearer security_token"))
+                .map(AdaptedUserDetails::new)
+                .map(user -> new TokenDto().setToken(jwtSecurityComponent.generateToken(user)))
                 .switchIfEmpty(Mono.error(AuthorizationException::new));
     }
 
