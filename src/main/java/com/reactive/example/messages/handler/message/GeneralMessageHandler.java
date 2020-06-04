@@ -46,12 +46,29 @@ public class GeneralMessageHandler {
                 .body(messages, MessageDto.class);
     }
 
+    public Mono<ServerResponse> getAllMessagesPageable(ServerRequest request) {
+        int page = request.queryParam("page")
+                .map(Integer::parseInt)
+                .filter(p -> p >= 0)
+                .orElse(0);
+        int count = request.queryParam("count")
+                .map(Integer::parseInt)
+                .filter(c -> c > 0)
+                .orElse(10);
+        Flux<MessageDto> messages = messageService.getAllMessagesPageable(page, count);
+
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(messages, MessageDto.class);
+    }
+
     @Bean
     public RouterFunction<ServerResponse> messageRoutes(GeneralMessageHandler handler) {
         return RouterFunctions.route()
                 .path(MESSAGES_PATH_PREFIX, builder -> builder
                         .GET("/{message-id}/user/{user-id}", handler::getMessageById)
                         .GET("/user/{user-id}", handler::getAllUserMessages)
+                        .GET("", handler::getAllMessagesPageable)
                 )
                 .build();
     }

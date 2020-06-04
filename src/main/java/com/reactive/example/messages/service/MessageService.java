@@ -8,6 +8,8 @@ import com.reactive.example.messages.model.Message;
 import com.reactive.example.messages.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -36,6 +38,12 @@ public class MessageService {
     public Flux<MessageDto> getAllUserMessages(String userLogin) {
         return mongoTemplate.find(Query.query(Criteria.where("_id.userId").is(userLogin)), Message.class)
                 .switchIfEmpty(Mono.error(new NotFoundException("MESSAGE_NOT_FOUND")))
+                .map(messageMapper::from);
+    }
+
+    public Flux<MessageDto> getAllMessagesPageable(int page, int count) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "updateDate");
+        return messageRepository.findAll(PageRequest.of(page, count, sort))
                 .map(messageMapper::from);
     }
 
