@@ -1,6 +1,7 @@
 package com.reactive.example.messages.component.security.auth;
 
 import com.reactive.example.messages.component.security.token.JwtSecurityComponent;
+import com.reactive.example.messages.exception.AuthenticationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -43,7 +44,7 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
                 }
             } catch (Exception ex) {
                 log.info("Invalid token '{}'", token.get(), ex);
-                return Mono.empty();
+                return Mono.error(new AuthenticationException(ex.getMessage()));
             }
         }
         return Mono.empty();
