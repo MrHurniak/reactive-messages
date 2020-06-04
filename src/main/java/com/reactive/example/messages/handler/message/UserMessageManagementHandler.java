@@ -1,4 +1,4 @@
-package com.reactive.example.messages.handler;
+package com.reactive.example.messages.handler.message;
 
 import com.reactive.example.messages.component.provider.UuidProvider;
 import com.reactive.example.messages.component.validator.impl.SpringValidationHandler;
@@ -14,18 +14,18 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.security.Principal;
 import java.util.UUID;
 
 import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
 
 @Component
 @RequiredArgsConstructor
-public class MessageHandler {
+public class UserMessageManagementHandler {
 
-    private static final String MESSAGES_PATH_PREFIX = "/application/api/users/{user-login}/messages";
+    private static final String USER_MESSAGES_MANAGEMENT_PATH_PREFIX = "/application/api/user/message";
 
     private final MessageService messageService;
     private final UserService userService;
@@ -33,64 +33,45 @@ public class MessageHandler {
     private final UuidProvider uuidProvider;
 
     public Mono<ServerResponse> saveMessage(ServerRequest request) {
-        String userLogin = request.pathVariable("user-login");
-        Mono<MessageDto> savedMessage = request.bodyToMono(MessageCreateDto.class)
+        Mono<String> userId = request.principal().map(Principal::getName);
+        Mono<MessageCreateDto> messageCreateDto = request.bodyToMono(MessageCreateDto.class);
+        Mono<MessageDto> savedMessage = Mono.zip(userId, messageCreateDto)
                 .doOnNext(validationHandler::handleRequest)
-                .flatMap(message -> userService.checkIfExistByLogin(userLogin)
-                        .then(messageService.saveMessage(userLogin, message)));
+                .doOnNext(tuple2 -> userService.checkIfExistByLogin(tuple2.getT1()))
+                .flatMap(tuple2 -> messageService.saveMessage(tuple2.getT1(), tuple2.getT2()));
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(savedMessage, MessageDto.class);
     }
 
-    public Mono<ServerResponse> getMessageById(ServerRequest request) {
-        String userLogin = request.pathVariable("user-login");
-        UUID messageId = uuidProvider.parse(request.pathVariable("message-id"));
-        Mono<MessageDto> message = userService.checkIfExistByLogin(userLogin)
-                .then(messageService.getById(userLogin, messageId));
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(message, MessageDto.class);
-    }
-
-    public Mono<ServerResponse> getAllUserMessages(ServerRequest request) {
-        String userLogin = request.pathVariable("user-login");
-        Flux<MessageDto> messages = userService.checkIfExistByLogin(userLogin)
-                .thenMany(messageService.getAllUserMessages(userLogin));
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(messages, MessageDto.class);
-    }
-
     public Mono<ServerResponse> updateMessage(ServerRequest request) {
-        String userLogin = request.pathVariable("user-login");
         UUID messageId = uuidProvider.parse(request.pathVariable("message-id"));
-        Mono<MessageDto> updatedMessage = request.bodyToMono(MessageCreateDto.class)
+        Mono<String> userId = request.principal().map(Principal::getName);
+        Mono<MessageCreateDto> messageCreateDto = request.bodyToMono(MessageCreateDto.class);
+        Mono<MessageDto> updatedMessage = Mono.zip(userId, messageCreateDto)
                 .doOnNext(validationHandler::handleRequest)
-                .flatMap(message -> userService.checkIfExistByLogin(userLogin)
-                        .then(messageService.updateMessage(userLogin, messageId, message)));
+                .doOnNext(tuple2 -> userService.checkIfExistByLogin(tuple2.getT1()))
+                .flatMap(tuple2 -> messageService.updateMessage(tuple2.getT1(), messageId, tuple2.getT2()));
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(updatedMessage, MessageDto.class);
     }
 
     public Mono<ServerResponse> deleteMessage(ServerRequest request) {
-        String userLogin = request.pathVariable("user-login");
         UUID messageId = uuidProvider.parse(request.pathVariable("message-id"));
-        Mono<Void> deleteMessage = userService.checkIfExistByLogin(userLogin)
-                .then(messageService.deleteMessage(userLogin, messageId));
+        Mono<Void> deleteMessage = request.principal().map(Principal::getName)
+                .doOnNext(userService::checkIfExistByLogin)
+                .flatMap(login -> messageService.deleteMessage(login, messageId));
         return ServerResponse.noContent()
                 .build(deleteMessage);
     }
 
 
     @Bean
-    public RouterFunction<ServerResponse> messageRoutes(MessageHandler handler) {
+    public RouterFunction<ServerResponse> messageManagementRoutes(UserMessageManagementHandler handler) {
         return RouterFunctions.route()
-                .path(MESSAGES_PATH_PREFIX, builder -> builder
+                .path(USER_MESSAGES_MANAGEMENT_PATH_PREFIX, builder -> builder
                         .POST("", accept(MediaType.APPLICATION_JSON), handler::saveMessage)
-                        .GET("", handler::getAllUserMessages)
-                        .GET("{message-id}", handler::getMessageById)
                         .PUT("{message-id}", accept(MediaType.APPLICATION_JSON), handler::updateMessage)
                         .DELETE("{message-id}", handler::deleteMessage)
                 )

@@ -1,4 +1,4 @@
-package com.reactive.example.messages.handler;
+package com.reactive.example.messages.handler.user;
 
 import com.reactive.example.messages.component.validator.impl.SpringValidationHandler;
 import com.reactive.example.messages.dto.TokenDto;
