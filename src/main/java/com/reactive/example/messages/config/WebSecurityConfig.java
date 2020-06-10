@@ -30,7 +30,9 @@ public class WebSecurityConfig {
                 .authorizeExchange()
                 .pathMatchers(
                         "/application/api/users/login",
-                        "/application/api/users/register"
+                        "/application/api/users/register",
+                        //TODO remove
+                        "/ws/messages"
                 ).permitAll()
                 .anyExchange().authenticated()
                 .and()
