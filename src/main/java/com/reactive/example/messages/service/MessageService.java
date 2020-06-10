@@ -1,5 +1,6 @@
 package com.reactive.example.messages.service;
 
+import com.mongodb.client.result.DeleteResult;
 import com.reactive.example.messages.dto.MessageCreateDto;
 import com.reactive.example.messages.dto.MessageDto;
 import com.reactive.example.messages.event.message.MessageEvent;
@@ -78,5 +79,10 @@ public class MessageService {
                 .doOnNext(v -> eventPublisher.publishEvent(
                         new MessageEvent(DELETE, new MessageDto().setId(messageId)))
                 );
+    }
+
+    public Mono<Long> deleteAllMessagesOlderThan(Instant beforeTime) {
+        return mongoTemplate.remove(Query.query(Criteria.where("updateDate").lt(beforeTime)), Message.class)
+                .map(DeleteResult::getDeletedCount);
     }
 }
